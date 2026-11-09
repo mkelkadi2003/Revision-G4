@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Wizard Adventure | Al-Bassam</title>
+<style>
+  :root {
+    --navy:#203862; --purple:#7255dc; --pink:#ff6c9b;
+    --gold:#ffc84a; --green:#19a879; --red:#e64e67;
+    --bg:#f4f2ff; --ink:#263659;
+  }
+  * { box-sizing:border-box }
+  body {
+    margin:0; font-family:system-ui, sans-serif; color:var(--ink);
+    background: radial-gradient(circle at 10% 10%,#ffe6ef,transparent 30%),
+      radial-gradient(circle at 90% 20%,#dceaff,transparent 30%),var(--bg);
+    min-height:100vh;
+  }
+  header {
+    background:#fff; padding:12px 20px; box-shadow:0 4px 20px #24345c12;
+  }
+  .header-inner {
+    max-width:900px; margin:auto; display:flex; align-items:center;
+    justify-content:space-between; gap:12px;
+  }
+  .logo { max-width:190px; max-height:65px; object-fit:contain }
+  .brand { font-weight:900; color:var(--navy) }
+  .tag { background:#fff3cb; border-radius:30px; padding:9px 14px; font-weight:800 }
+  main { max-width:900px; margin:25px auto; padding:0 16px 40px }
+  .card {
+    background:#fff; border-radius:26px; padding:clamp(20px,5vw,38px);
+    box-shadow:0 16px 45px #3f397819; position:relative; overflow:hidden;
+  }
+  h1 { font-size:clamp(2rem,6vw,3.5rem); line-height:1.05; margin:10px 0 }
+  h2 { line-height:1.3 }
+  p { line-height:1.55 }
+  .small { font-size:.88rem; color:#6a7390; font-weight:700 }
+  .hero { display:grid; grid-template-columns:1fr auto; align-items:center; gap:15px }
+  .mascot {
+    font-size:clamp(4rem,12vw,7rem); display:inline-block;
+    animation:bob 2.5s ease-in-out infinite; transform-origin:center bottom;
+  }
+  @keyframes bob { 50% { transform:translateY(-9px) rotate(5deg) } }
+  button {
+    font:inherit; cursor:pointer; border:0; border-radius:15px;
+    transition:transform .15s,box-shadow .15s;
+  }
+  button:hover:not(:disabled) { transform:translateY(-3px) }
+  button:focus-visible, input:focus-visible { outline:3px solid #ffb72b; outline-offset:3px }
+  .primary {
+    background:linear-gradient(135deg,var(--purple),#4f7eee); color:#fff;
+    font-weight:900; padding:15px 22px; box-shadow:0 6px 0 #423c9d;
+  }
+  .secondary { background:#eeeaff; color:#493898; font-weight:800; padding:14px 18px }
+  .sound { background:#eef3ff; padding:9px 12px; color:var(--navy); font-weight:800 }
+  .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:22px }
+  .chips { display:flex; flex-wrap:wrap; gap:9px; margin:20px 0 }
+  .chip { background:#f1efff; border-radius:30px; padding:9px 13px; font-weight:800 }
+  .hud { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-weight:900 }
+  .hud span { background:#f3f2ff; padding:8px 12px; border-radius:12px }
+  .track { background:#eceaf7; border-radius:20px; height:14px; margin:18px 0; overflow:hidden }
+  .fill { height:100%; width:0; background:linear-gradient(90deg,#8d63ee,#ff87b1); transition:width .4s }
+  .map { display:flex; justify-content:space-between; gap:5px; color:#858ca4; font-size:.8rem; font-weight:800 }
+  .map .active { color:var(--purple) }
+  .speech {
+    display:flex; align-items:center; gap:12px; background:#fff8df;
+    border-radius:16px; padding:12px 15px; margin:22px 0 10px;
+  }
+  .speech-icon { font-size:2rem }
+  .category { color:var(--purple); font-size:.8rem; font-weight:900; letter-spacing:1px; text-transform:uppercase }
+  .options { display:grid; gap:10px; margin:20px 0 }
+  .option {
+    text-align:left; background:#f5f6ff; color:var(--ink); padding:15px;
+    border:2px solid transparent; font-weight:700; line-height:1.4;
+  }
+  .option:hover:not(:disabled) { border-color:var(--purple); background:#f0edff }
+  .option.correct { background:#e2f9ed; border-color:var(--green) }
+  .option.wrong { background:#fff0f2; border-color:var(--red) }
+  .option:disabled { cursor:default; opacity:1 }
+  .feedback { line-height:1.5; font-weight:800; min-height:28px; margin-bottom:15px }
+  .good { color:#12815e } .bad { color:#bd3b55 }
+  .hidden { display:none !important }
+  .score-big { font-size:clamp(3rem,10vw,5rem); font-weight:1000; color:var(--purple) }
+  .review { background:#fff8e6; border-left:5px solid var(--gold); padding:12px; margin:10px 0; border-radius:8px }
+  .checklist { display:grid; gap:10px; margin:20px 0 }
+  .checklist label { background:#f5f6ff; border-radius:12px; padding:13px; display:flex; gap:12px; align-items:flex-start }
+  input[type=checkbox] { width:21px; height:21px; accent-color:var(--green); flex-shrink:0 }
+  .confetti { position:fixed; top:-20px; z-index:10; pointer-events:none; animation:fall 3s linear forwards }
+  @keyframes fall { to { transform:translateY(110vh) rotate(720deg); opacity:0 } }
+  footer { text-align:center; color:#8088a0; padding:0 15px 25px; font-size:.85rem }
+  @media(max-width:500px) {
+    .hero { grid-template-columns:1fr }
+    .mascot { font-size:4.5rem }
+    .tag { font-size:.8rem }
+    .map { font-size:.7rem }
+  }
+  @media(prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div>
+      <img class="logo" src="logo.png" alt="Al-Bassam Schools logo"
+        onerror="this.hidden=true;document.getElementById('brand').hidden=false">
+      <span id="brand" class="brand" hidden>Al-Bassam Schools</span>
+    </div>
+    <span class="tag">🎓 Grade 4 ICT</span>
+    <button class="sound" id="soundBtn" aria-label="Turn sound off">🔊 Sound on</button>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="home">
+    <div class="hero">
+      <div>
+        <div class="category">Al-Bassam presents</div>
+        <h1>Word Wizard Adventure!</h1>
+        <p>Oh no! The silly <strong>Formatting Gremlins</strong> have mixed up Microsoft Word! Help Wizzy defeat them one question at a time.</p>
+        <div class="chips">
+          <span class="chip">⭐ Earn stars</span>
+          <span class="chip">🔥 Build streaks</span>
+          <span class="chip">👾 Beat the boss</span>
+        </div>
+        <button class="primary" id="startBtn">Let’s play! 🚀</button>
+        <p class="small">23 questions · No timer · You can play again!</p>
+      </div>
+      <div class="mascot" aria-label="Wizzy the wizard">🧙‍♂️</div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="game">
+    <div class="hud">
+      <span id="counter"></span>
+      <span id="stars"></span>
+      <span id="streak"></span>
+    </div>
+    <div class="track" aria-label="Adventure progress"><div class="fill" id="bar"></div></div>
+    <div class="map">
+      <span id="map1">🏁 Start</span>
+      <span id="map2">🧩 Tool land</span>
+      <span id="map3">👾 Boss</span>
+      <span>🏆 Finish</span>
+    </div>
+    <div class="speech">
+      <span class="speech-icon" id="face">🧙‍♂️</span>
+      <span id="wizardMessage">Wizzy says: You’ve got this!</span>
+    </div>
+    <div class="category" id="category"></div>
+    <h2 id="question"></h2>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+    <button class="primary hidden" id="nextBtn">Next adventure →</button>
+  </section>
+
+  <section class="card hidden" id="results">
+    <div class="hero">
+      <div>
+        <div class="category">Adventure complete!</div>
+        <h1 id="resultTitle"></h1>
+        <div class="score-big" id="finalScore"></div>
+        <p id="resultText"></p>
+        <p id="bestStreak"></p>
+      </div>
+      <div class="mascot">🏆</div>
+    </div>
+    <div id="reviewSection" class="hidden">
+      <h2>🧠 Power-up practice</h2>
+      <p>Here are the questions to practise again:</p>
+      <div id="reviewList"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="projectBtn">Bonus animal mission 🐱</button>
+      <button class="secondary" id="againBtn">Play again 🔄</button>
+    </div>
+  </section>
+
+  <section class="card hidden" id="project">
+    <div class="category">Bonus mission · Microsoft Word</div>
+    <h1>Animal artist! 🐱🎨</h1>
+    <p>Open Microsoft Word and create an amazing animal document. Tick each mission when you finish it!</p>
+    <div class="checklist">
+      <label><input type="checkbox"> 🐾 Choose an animal picture.</label>
+      <label><input type="checkbox"> 🖼️ Insert it into your document.</label>
+      <label><input type="checkbox"> 🌈 Change the picture’s color.</label>
+      <label><input type="checkbox"> 🟦 Add a picture border.</label>
+      <label><input type="checkbox"> 🔷 Insert a shape.</label>
+      <label><input type="checkbox"> 🌑 Add a shadow effect.</label>
+      <label><input type="checkbox"> 💾 Save the document with your name.</label>
+    </div>
+    <p id="missionProgress" role="status">🐾 0 of 7 missions complete</p>
+    <p class="small">Ask your teacher to check your finished Word document. This checklist is not an automatic assessment.</p>
+    <button class="secondary" id="backBtn">← Back to results</button>
+  </section>
+</main>
+<footer>Al-Bassam Schools · Grade 4 ICT · Microsoft Word revision</footer>
+
+<script>
+const questions = [
+  {
+    type:"Word powers", q:"What does Show/Hide ¶ do?",
+    options:["Shows hidden formatting marks like spaces","Makes all text bigger","Deletes the document"],
+    correct:0, why:"It shows formatting marks, including spaces and paragraph marks."
+  },
+  {
+    type:"Word powers", q:"What does Remove Background do?",
+    options:["Removes the background around the main subject","Moves the picture to another page","Adds a border"],
+    correct:0, why:"It helps keep the main subject and remove the background."
+  },
+  {
+    type:"Word powers", q:"What does Picture Effects do?",
+    options:["Adds visual effects such as shadows","Checks spelling","Finds a word"],
+    correct:0, why:"Picture Effects adds special visual effects."
+  },
+  {
+    type:"Word powers", q:"What does Wrap Text control?",
+    options:["How text flows around a picture","How loud the computer is","The spelling of every word"],
+    correct:0, why:"Wrap Text controls how surrounding text flows around a picture."
+  },
+  {
+    type:"Word powers", q:"What does Crop do?",
+    options:["Trims unwanted areas from the edges of a picture","Changes a picture into a song","Checks grammar"],
+    correct:0, why:"Crop trims or hides unwanted parts around a picture’s edges."
+  },
+  {
+    type:"Word powers", q:"What does Find do?",
+    options:["Searches for a word or phrase","Prints the document","Changes a picture’s color"],
+    correct:0, why:"Find searches for a specific word or phrase."
+  },
+  {
+    type:"Word powers", q:"What does Spelling and Grammar do?",
+    options:["Helps check writing for mistakes","Adds shapes","Makes pictures dance"],
+    correct:0, why:"It helps identify spelling and grammar mistakes."
+  },
+  {
+    type:"Word powers", q:"What does Replace All do?",
+    options:["Changes all matching words or phrases at once","Finds a word without changing it","Deletes every picture"],
+    correct:0, why:"Replace All changes matching occurrences throughout the document at once."
+  },
+  {
+    type:"Tool land", q:"Which tool creates diagrams such as a process or hierarchy?",
+    options:["SmartArt","Crop","Picture Border","Position"],
+    correct:0, why:"SmartArt turns information into visual diagrams."
+  },
+  {
+    type:"Tool land", q:"Which tool trims the edges of a picture?",
+    options:["Crop","Shapes","SmartArt","Position"],
+    correct:0, why:"Crop trims picture edges."
+  },
+  {
+    type:"Tool land", q:"Which tool adds circles, arrows and squares?",
+    options:["Shapes","Crop","Picture Border","Position"],
+    correct:0, why:"Shapes lets you insert different figures."
+  },
+  {
+    type:"Tool land", q:"Which tool helps place a picture on the page?",
+    options:["Position","SmartArt","Shapes","Crop"],
+    correct:0, why:"Position helps you choose where a picture appears."
+  },
+  {
+    type:"Tool land", q:"Which tool adds an outline around a picture?",
+    options:["Picture Border","Position","SmartArt","Crop"],
+    correct:0, why:"Picture Border adds an outline around a picture."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Increase Indent aligns text to the right.",
+    options:["True","False"], correct:1,
+    why:"Increase Indent moves a paragraph farther from the margin; it does not right-align it."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Indentation can make a paragraph stand out from a margin.",
+    options:["True","False"], correct:0,
+    why:"Indentation changes a paragraph’s distance from a margin."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Line spacing changes the space between words in a sentence.",
+    options:["True","False"], correct:1,
+    why:"Line spacing changes the vertical space between lines."
+  },
+  {
+    type:"Boss challenge · True or false", q:"A border can only go around a whole document, not a paragraph.",
+    options:["True","False"], correct:1,
+    why:"You can put borders around individual paragraphs too."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Crop adjusts a picture’s brightness and color.",
+    options:["True","False"], correct:1,
+    why:"Crop trims picture edges. Other picture tools change brightness and color."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Wrap Text controls how text surrounds a picture.",
+    options:["True","False"], correct:0,
+    why:"Wrap Text changes how surrounding text flows around a picture."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Shapes cannot contain text.",
+    options:["True","False"], correct:1,
+    why:"Many shapes can contain text."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Replace All changes all matching words or phrases without asking each time.",
+    options:["True","False"], correct:0,
+    why:"Replace All changes all matching occurrences at once."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Ctrl + P opens the print options on Windows.",
+    options:["True","False"], correct:0,
+    why:"Ctrl + P opens the print screen."
+  },
+  {
+    type:"Boss challenge · True or false", q:"Landscape orientation makes a page horizontal.",
+    options:["True","False"], correct:0,
+    why:"Landscape pages are wider than they are tall."
+  }
+];
+
+const $ = id => document.getElementById(id);
+let index=0, score=0, streak=0, best=0, mistakes=[], locked=false;
+let soundOn=true, audioContext;
+
+const cheers=[
+  "Amazing! Even the gremlins are impressed! 🤩",
+  "BOOM! Wizard power unlocked! ✨",
+  "Correct! Give your brain a high-five! 🖐️",
+  "Brilliant! The gremlin slipped on a banana! 🍌"
+];
+const oops=[
+  "Oops! A gremlin scrambled that one! 👾",
+  "Not quite! Even wizards need practice. 🧙",
+  "Nice try! Let’s learn the trick. 💡"
+];
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+function shuffle(arr){
+  const copy=[...arr];
+  for(let i=copy.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy;
+}
+function show(id){
+  ["home","game","results","project"].forEach(s=>$(s).classList.toggle("hidden",s!==id));
+  window.scrollTo(0,0);
+}
+function sound(good){
+  if(!soundOn) return;
+  try {
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if(!Audio) return;
+    audioContext ||= new Audio();
+    if(audioContext.state==="suspended") audioContext.resume();
+    const now=audioContext.currentTime;
+    const notes=good?[523,659,784]:[300,220];
+    notes.forEach((freq,i)=>{
+      const osc=audioContext.createOscillator();
+      const gain=audioContext.createGain();
+      osc.type="sine"; osc.frequency.value=freq;
+      gain.gain.setValueAtTime(.06,now+i*.12);
+      gain.gain.exponentialRampToValueAtTime(.001,now+i*.12+.18);
+      osc.connect(gain); gain.connect(audioContext.destination);
+      osc.start(now+i*.12); osc.stop(now+i*.12+.2);
+    });
+  } catch(e) { /* Sound is optional. */ }
+}
+function start(){
+  index=0; score=0; streak=0; best=0; mistakes=[];
+  show("game"); render();
+}
+function render(){
+  locked=false;
+  const item=questions[index];
+  $("counter").textContent=`🗺️ ${index+1} / ${questions.length}`;
+  $("stars").textContent=`⭐ ${score} stars`;
+  $("streak").textContent=`🔥 ${streak} streak`;
+  $("bar").style.width=`${index/questions.length*100}%`;
+  $("category").textContent=item.type;
+  $("question").textContent=item.q;
+  $("face").textContent=index>=13?"👾":"🧙‍♂️";
+  $("wizardMessage").textContent=index>=13
+    ? "Boss gremlin says: True or false? You can beat me!"
+    : index>=8 ? "Wizzy says: Welcome to Tool Land!" : "Wizzy says: Choose your super answer!";
+  $("map1").classList.toggle("active",index<8);
+  $("map2").classList.toggle("active",index>=8&&index<13);
+  $("map3").classList.toggle("active",index>=13);
+  $("feedback").textContent="";
+  $("feedback").className="feedback";
+  $("nextBtn").classList.add("hidden");
+  $("options").replaceChildren();
+
+  // Keep True/False in their familiar order; shuffle the other choices.
+  let choices=item.options.map((text,i)=>({text,i}));
+  if(item.options.length>2) choices=shuffle(choices);
+  choices.forEach(choice=>{
+    const btn=document.createElement("button");
+    btn.className="option";
+    btn.textContent=choice.text;
+    btn.dataset.index=choice.i;
+    btn.addEventListener("click",()=>answer(choice.i));
+    $("options").appendChild(btn);
+  });
+}
+function answer(selected){
+  if(locked) return;
+  locked=true;
+  const item=questions[index];
+  const correct=selected===item.correct;
+  [...$("options").children].forEach(btn=>{
+    btn.disabled=true;
+    if(Number(btn.dataset.index)===item.correct) btn.classList.add("correct");
+    if(Number(btn.dataset.index)===selected&&!correct) btn.classList.add("wrong");
+  });
+  if(correct){
+    score++; streak++; best=Math.max(best,streak);
+    $("feedback").classList.add("good");
+    $("feedback").textContent=`${pick(cheers)} ${item.why}`;
+    $("face").textContent="🤩";
+    if(streak===3 || streak===5 || streak===10) confetti(18);
+  } else {
+    streak=0; mistakes.push(item);
+    $("feedback").classList.add("bad");
+    $("feedback").textContent=`${pick(oops)} ${item.why}`;
+    $("face").textContent="💡";
+  }
+  sound(correct);
+  $("stars").textContent=`⭐ ${score} stars`;
+  $("streak").textContent=`🔥 ${streak} streak`;
+  $("bar").style.width=`${(index+1)/questions.length*100}%`;
+  $("nextBtn").textContent=index===questions.length-1?"See my treasure! 🏆":"Next adventure →";
+  $("nextBtn").classList.remove("hidden");
+}
+function confetti(count=40){
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const pieces=["⭐","🎉","✨","💜","🎈"];
+  for(let i=0;i<count;i++){
+    const el=document.createElement("span");
+    el.className="confetti"; el.textContent=pick(pieces);
+    el.style.left=Math.random()*100+"vw";
+    el.style.animationDelay=Math.random()*.5+"s";
+    el.style.fontSize=(14+Math.random()*14)+"px";
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4000);
+  }
+}
+function finish(){
+  show("results");
+  $("finalScore").textContent=`${score} / ${questions.length} ⭐`;
+  $("resultTitle").textContent=score===questions.length?"Word Wizard Champion!":"Adventure complete!";
+  $("resultText").textContent=score===questions.length
+    ? "Perfect score! The gremlins have officially retired. 🎉"
+    : "Fantastic effort! Every mistake is a new superpower waiting to happen.";
+  $("bestStreak").textContent=`🔥 Your best streak: ${best} correct in a row!`;
+  $("reviewSection").classList.toggle("hidden",mistakes.length===0);
+  $("reviewList").replaceChildren();
+  mistakes.forEach(item=>{
+    const box=document.createElement("div"); box.className="review";
+    const title=document.createElement("strong"); title.textContent=item.q;
+    const answer=document.createElement("div"); answer.textContent=`✅ ${item.options[item.correct]}`;
+    const why=document.createElement("div"); why.textContent=item.why;
+    box.append(title,answer,why); $("reviewList").appendChild(box);
+  });
+  confetti(); sound(true);
+}
+
+$("startBtn").addEventListener("click",start);
+$("againBtn").addEventListener("click",start);
+$("nextBtn").addEventListener("click",()=>{
+  index++;
+  if(index<questions.length) render(); else finish();
+});
+$("projectBtn").addEventListener("click",()=>show("project"));
+$("backBtn").addEventListener("click",()=>show("results"));
+$("soundBtn").addEventListener("click",()=>{
+  soundOn=!soundOn;
+  $("soundBtn").textContent=soundOn?"🔊 Sound on":"🔇 Sound off";
+  $("soundBtn").setAttribute("aria-label",soundOn?"Turn sound off":"Turn sound on");
+});
+document.querySelectorAll("#project input").forEach(input=>{
+  input.addEventListener("change",()=>{
+    const count=document.querySelectorAll("#project input:checked").length;
+    $("missionProgress").textContent=count===7
+      ? "🎉 All missions checked! Show your teacher your masterpiece!"
+      : `🐾 ${count} of 7 missions complete`;
+    if(count===7){ confetti(); sound(true) }
+  });
+});
+</script>
+</body>
+</html>
